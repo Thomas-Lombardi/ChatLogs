@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Chat logs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>function getCookie(c_name)
+  {
+  var c_value = document.cookie;
+  var c_start = c_value.indexOf(" " + c_name + "=");
+  if (c_start == -1){
+    c_start = c_value.indexOf(c_name + "=");
+    }
+  if (c_start == -1){
+    c_value = null;
+    }
+  else{
+    c_start = c_value.indexOf("=", c_start) + 1;
+    var c_end = c_value.indexOf(";", c_start);
+    if (c_end == -1){
+      c_end = c_value.length;
+      }
+    c_value = unescape(c_value.substring(c_start,c_end));
+    }
+  return c_value;
+  }
+
+  function setCookie(c_name,value,exdays){
+  var exdate=new Date();
+  exdate.setDate(exdate.getDate() + exdays);
+  var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+  document.cookie=c_name + "=" + c_value;
+  }
+
+  function checkCookie(){
+  var username=getCookie("username");
+  var guid = guid();
+  if (username!=null && username!=""){
+    alert("Welcome again " + username.split("-")[0]);
+  }
+  else{
+      username=prompt("Please enter your username:","");
+      if (username!=null && username.replace(" ","")!=""){
+        setCookie("username",username+"-"+guid,365);
+      }else {
+        username= "unknown";
+        setCookie("username",username+"-"+guid,365);
+      }
+    }
+    function guid(){
+      function s4(){
+        return Math.floor((1+Math.random())*0x100000).toString(16).substring(1);
+      }
+      return s4() + s4();
+    }
+  }
+  function removeCookies(){
+
+    document.cookie = 'username =; expires=Thu, 01 Jan 3970 00:00:01 GMT;';
+  }
+
+
+  </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </head>
+
+  <body onload="checkCookie()" >
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+      <h1 class="display-4">Programming Chat Rooms</h1>
+      <p class="lead">Select a room below</p>
+    </div>
+  </div>
+    <div class="container-fluid">
+      <a href="/javascript" class="list-group-item list-group-item-action"><div class="row">
+          <div class="col-lg-9">
+            JavaScript Room
+          </div>
+          <div id="javascriptroomonline" class="col-lg-3">Loading...
+          </div>
+        </div></a>
+        <a href="/java"class="list-group-item list-group-item-action"><div class="row">
+          <div class="col-lg-9">
+            Java Room
+          </div>
+          <div id="javaroomonline" class="col-lg-3">Loading...
+          </div>
+        </div></a>
+        <a href="/css" class="list-group-item list-group-item-action"><div class="row">
+          <div class="col-lg-9">
+            CSS Room
+          </div>
+          <div id="cssroomonline" class="col-lg-3"> Loading...
+          </div>
+        </div></a>
+
+
+    </div>
+  </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script type="text/javascript">
+      var socket = io();
+      const room = 'default';
+      socket.on('javascriptroomonline', function(num){
+        $('#javascriptroomonline').text(num);
+      });
+      socket.on('javaroomonline', function(num){
+        $('#javaroomonline').text(num);
+      });
+      socket.on('cssroomonline',function(num){
+        $('#cssroomonline').text(num);
+      });
+      window.setInterval(function(){
+        $('#javascriptroomonline').text(socket.emit('javascriptroomonline'));
+        $('#javaroomonline').text(socket.emit('javaroomonline'));
+        $('#cssroomonline').text(socket.emit('cssroomonline'));
+      },3000);
+
+    </script>
+  </body>
+</html>

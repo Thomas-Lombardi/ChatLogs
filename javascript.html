@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Chat logs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <script>function getCookie(c_name)
+{
+var c_value = document.cookie;
+var c_start = c_value.indexOf(" " + c_name + "=");
+if (c_start == -1){
+  c_start = c_value.indexOf(c_name + "=");
+  }
+if (c_start == -1){
+  c_value = null;
+  }
+else{
+  c_start = c_value.indexOf("=", c_start) + 1;
+  var c_end = c_value.indexOf(";", c_start);
+  if (c_end == -1){
+    c_end = c_value.length;
+    }
+  c_value = unescape(c_value.substring(c_start,c_end));
+  }
+return c_value;
+}
+
+function setCookie(c_name,value,exdays){
+var exdate=new Date();
+exdate.setDate(exdate.getDate() + exdays);
+var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+document.cookie=c_name + "=" + c_value;
+}
+
+function checkCookie(){
+var username=getCookie("username");
+if (username!=null && username!=""){
+  alert("Welcome again " + username);
+}
+else{
+    username=prompt("Please enter your username:","");
+    if (username!=null && username!=""){
+      setCookie("username",username,365);
+    }else {
+      username= "unknown";
+      setCookie("username",username,365);
+    }
+  }
+}
+function removeCookies(){
+
+  document.cookie = 'username =; expires=Thu, 01 Jan 3970 00:00:01 GMT;';
+}
+</script>
+  <body >
+    <ul id="navbar">
+      <li class="title">Javascript room</li>
+      <li class="buttons"><button id="back" onclick="leave();" ><a href = "/">Back</a></button></li>
+      <li class="buttons"><button id="logout" onclick="leave();removeCookies(); "><a href = "/">Log out</a></button></li>
+    </ul>
+    <ul id="messages"></ul>
+    <br><br>
+    <form action="">
+      <input id="m" autocomplete="off" autofocus/><button>Send</button>
+    </form>
+    <style>
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font: 24px Helvetica, Arial; }
+    form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+    form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+    form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+    #messages { list-style-type: none; padding: 0; }
+    #messages li { padding: 5px 10px; }
+    @media only screen and (max-width: 375px;) {
+      form {  background: #000; padding: 3px; position: fixed; bottom: 0; width: 375px; height: 100px;}
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+    }
+      #navbar {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        position: fixed;
+        background-color: #333;
+        top: 0;
+        width: 100%;
+      }
+      .title{
+        text-align: center;
+        width: 92%;
+        float: left;
+        color: white;
+      }
+       .buttons {
+        float: left;
+      }
+
+        li #back a, li #logout a {
+        display: inline-block;
+
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+      }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script type="text/javascript">
+            const room = 'javascript';
+            var socket = io();
+            //var users = io.sockets.clients('socket-chat-example');
+            //var rl = room.length;
+
+            console.log(name);
+            var color = 'ff0000';
+            function bottom() {
+                var lis = document.querySelectorAll("#messages li");
+                lis[lis.length-1].scrollIntoView();
+            };
+            function getUsernameColor(username){
+                var hash = 7;
+                for (var i = 0; i < username.length; i++) {
+                   hash = username.charCodeAt(i) + (hash << 5) - hash;
+                }
+
+                return(hash);
+              }
+              function intToRGB(i){
+                  var c = (i & 0x00FFFFFF)
+                  .toString(16)
+                  .toUpperCase();
+                  return "00000".substring(0, 6 - c.length) + c;
+              }
+              function goToBottom() {
+                var lis = document.querySelectorAll("#messages li");
+                if (lis.length <= 24){
+                  document.getElementById('messages').style.marginTop =  (912 - (lis.length * 38)) + "px";
+                }
+              }
+              socket.on('connect', () =>{
+                var name = getCookie("username").split("-")[0];
+                socket.emit('join',{room, name});
+              })
+              function leave(){
+
+
+                  var name = getCookie("username").split("-")[0];
+                  socket.emit('broadcastDisconnect',({room, name}));
+                  socket.disconnect(room);
+                  //socket.emit('disconnect',{room, name});
+              }
+            $('form').submit(function(){
+                var name =  getCookie("username").split("-")[0];
+                let msg = name+': '+$('#m').val()
+
+                socket.emit('chat message', {msg, room, name});
+                $('#m').val('');
+                return false;
+            });
+
+            socket.on('chat message',function(msg){
+                $('#messages').append($("<li style='color:#" + intToRGB(getUsernameColor(msg.substring(0,msg.indexOf(":")))) + ";'>").text(msg));
+                goToBottom();
+                bottom();
+            });
+        </script>
+  </body>
+</html>
